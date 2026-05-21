@@ -1,0 +1,15 @@
+# 巨大なキャッシュや一時ファイルを除外
+.cache/
+.local/share/
+.gnupg/
+.ssh/
+.thumbnails/
+
+# プログラム関連の重いフォルダ
+node_modules/
+__pycache__/
+*.log
+
+# ブラウザやシステムの設定
+.mozilla/
+.config/google-chrome/
