@@ -1,0 +1,22 @@
+# =========================
+# ROS2 / colcon build shit
+# =========================
+ros2_ws/build/
+ros2_ws/install/
+ros2_ws/log/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# C++ build junk
+*.o
+*.so
+
+# VSCode / IDE
+.vscode/
+.idea/
+
+# GUI stuff (from earlier)
+gui/mobility_dashboard/node_modules/
+gui/mobility_dashboard_backup/

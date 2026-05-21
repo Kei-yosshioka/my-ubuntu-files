@@ -1,0 +1,14 @@
+# GUI dependencies (DO NOT TRACK)
+gui/mobility_dashboard/node_modules/
+
+# Backup folders
+gui/mobility_dashboard_backup/
+
+# Misc GUI junk
+gui/.gitignore
+
+# Node stuff
+node_modules/
+dist/
+build/
+.env
