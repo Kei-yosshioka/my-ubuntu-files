@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react"
 import { Camera, LineChart as LineChartIcon, MapPinned, Thermometer } from "lucide-react"
 import * as ROSLIB from 'roslib' // ★ 追加：通信用ライブラリ
@@ -27,9 +26,39 @@ export default function SciencePage() {
   const [lastPanoramaTime, setLastPanoramaTime] = useState<string | null>(null)
   const [isCapturing, setIsCapturing] = useState(false) // ★ 撮影中フラグを追加
 
+  // ▼▼▼ GPS ▼▼▼
+  const [gpsData, setGpsData] = useState<{ latitude: number | null; longitude: number | null }>({
+    latitude: null,
+    longitude: null,
+  });
+  // ▲▲▲ GPS ▲▲▲
+
   const sensors = useTelemetryStore((s) => s.science.current)
   const ros = useTelemetryStore((s) => s.ros) // ★ ストアからROSを取り出す
   const isConnected = useTelemetryStore((s) => s.isConnected) // ★ 接続状態
+
+  // ▼▼▼ GPS ▼▼▼
+  useEffect(() => {
+    if (!ros || !isConnected) return;
+
+    const gpsListener = new ROSLIB.Topic({
+      ros: ros,
+      name: '/gps1/fix',
+      messageType: 'sensor_msgs/msg/NavSatFix'
+    });
+
+    gpsListener.subscribe((message: any) => {
+      setGpsData({
+        latitude: message.latitude,
+        longitude: message.longitude,
+      });
+    });
+
+    return () => {
+      gpsListener.unsubscribe();
+    };
+  }, [ros, isConnected]);
+  // ▲▲▲ GPS ▲▲▲
 
   const toggleCamera = (cameraId: string) => {
     setCameraStates((prev) => ({ ...prev, [cameraId]: !prev[cameraId] }))
@@ -121,6 +150,7 @@ export default function SciencePage() {
               toggleCamera={toggleCamera}
               sensors={sensors}
               formatSensor={formatSensor}
+              gpsData={gpsData} // ★ GPS
             />
           ) : (
             <div className="h-[700px] xl:h-[760px]">
@@ -208,7 +238,9 @@ type CamerasViewProps = {
   toggleCamera: (id: string) => void
   sensors: any
   formatSensor: (v: number | null, unit: string, digits?: number) => string
+  gpsData: { latitude: number | null; longitude: number | null } // ★GPS
 }
+
 
 function CamerasView({
   multispectrumCam,
@@ -217,6 +249,7 @@ function CamerasView({
   toggleCamera,
   sensors,
   formatSensor,
+  gpsData, // ★ GPS
 }: CamerasViewProps) {
   return (
     <section className="grid grid-cols-12 gap-3">
@@ -239,8 +272,16 @@ function CamerasView({
                 title="Position Data"
                 icon={<MapPinned className="h-4 w-4" />}
               >
-                <ScienceTelemetryRow label="Latitude" value="30.6210° N" />
-                <ScienceTelemetryRow label="Longitude" value="96.3404° W" />
+                {/* ▼▼▼ GPS ▼▼▼ */}
+                <ScienceTelemetryRow 
+                  label="Latitude" 
+                  value={gpsData.latitude !== null ? `${gpsData.latitude.toFixed(4)}° N` : "—"} 
+                />
+                <ScienceTelemetryRow 
+                  label="Longitude" 
+                  value={gpsData.longitude !== null ? `${gpsData.longitude.toFixed(4)}° W` : "—"} 
+                />
+                {/* ▲▲▲ GPS ▲▲▲ */}
                 <ScienceTelemetryRow label="Altitude" value={formatSensor(sensors.altitude, "m", 0)} />
                 <ScienceTelemetryRow label="Accuracy" value="±1.8 m" />
               </ScienceDataCard>
